@@ -25,7 +25,7 @@ private:
 #define CAN_BUS_SPEED 1000000
 
    // TODO char
-   char *USB_PORT ;
+   char *USB_PORT;
    char CAN_IDENTIFER[3] = "5";
 
    typedef enum
@@ -87,24 +87,27 @@ private:
    int adapter_init(const char *tty_device, int baudrate);
    static void sigterm(int signo);
 
-
    int c,
        tty_fd,
        baudrate;
- 
+
    float temp;
    char *inject_id = CAN_IDENTIFER;
    CANUSB_SPEED speed;
 
-   char *inject_data ;
+   char *inject_data;
+   unsigned char frame[20];
+   char received_data[20];
 
    float current_velocity,
-         current_steering,
-         prev_velocity,
-         prev_steering;
-         
+       current_steering,
+       prev_velocity,
+       prev_steering;
+
 public:
-   void update_loop(float velocity, float steering);
+   float getFeedback();
+   
+   void sendCmdVel(float velocity, float steering);
    CAN_Interface(char *port);
    ~CAN_Interface();
 };

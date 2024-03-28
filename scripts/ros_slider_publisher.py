@@ -14,12 +14,18 @@ class ros_slider:
         rospy.init_node('slider_pub', anonymous=True)
         self.velocity_pub = rospy.Publisher('velocity',Float32,queue_size=1)
         self.steering_pub = rospy.Publisher('steering_rad',Float32,queue_size=1)
+        self.speed_sub = rospy.Subscriber('speed_fb',Float32,self.speed_callback)
         
         self.drive_speed = Float32()
         self.steering_angle = Float32()
         self.drive_speed.data = self.steering_angle.data = 50
+        
 
-
+    def speed_callback(self,msg=Float32()):
+        speed = (msg.data).__round__(2)
+        feedback_label.config(text=f"Speed FeedBack: {speed} m/s")
+        window.update_idletasks()
+        window.update()
 
     def update_drive_value(self,value):
         drive_label.config(text=f"Drive: {value}%")
@@ -70,12 +76,20 @@ if __name__ == '__main__':
 
     # Create steering slider
     steering_label = tk.Label(window, text="Steering: 0%", font=("Arial", 16))
-
     steering_label.pack()
     steering_slider = tk.Scale(window, from_=0, to=100, orient="horizontal", command=slider.update_steering_value,length=300)
     steering_slider.set(50)  # Set the default value to 50
-
     steering_slider.pack()
+
+    #make a space between the slider and the feedback label?
+    space_label = tk.Label(window, text="", font=("Arial", 16))
+    space_label.pack()
+    
+    #display feedback value
+    feedback_label = tk.Label(window, text=f"Speed FeedBack:  m/s", font=("Arial", 16))
+    feedback_label.pack()
+    
+    
     # Bind the keys to close the window
     window.bind("<Escape>", slider.close_window)
     window.bind("q", slider.close_window)

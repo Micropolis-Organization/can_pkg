@@ -24,8 +24,6 @@ CAN_Interface::CAN_Interface(char *port) : USB_PORT(port)
 
    command_settings(tty_fd, speed, CANUSB_MODE_NORMAL, CANUSB_FRAME_STANDARD);
    inject_data = "S:%.2f";
-
-   // this->canusbspee
 }
 
 CAN_Interface::CANUSB_SPEED CAN_Interface::canusb_int_to_speed(int speed)
@@ -493,8 +491,40 @@ void CAN_Interface::sigterm(int signo)
    program_running = 0;
 }
 
-void CAN_Interface::update_loop(float velocity, float steering)
+void asciiToString(const uint8_t asciiCodes[], int length, char *result)
 {
+   for (int i = 0; i < length; ++i)
+   {
+      int code = asciiCodes[i];
+      if (code >= 0 && code <= 127)
+      { // Check if code is a valid ASCII code
+         result[i] = (char)code;
+      }
+      else
+      {
+         result[i] = '\0'; // Null character to terminate string on error
+         return;
+      }
+   }
+   result[length] = '\0'; // Null-terminate the string
+}
+
+bool parseMessage(const char *message, float *value)
+{
+   char type;
+   if (sscanf(message, "%c:%f", &type, value) == 2)
+   {
+      if (type == 'F') // Feedback
+      {
+         return true;
+      }
+   }
+   return false;
+}
+
+void CAN_Interface::sendCmdVel(float velocity, float steering)
+{
+
    inject_id = "140";
 
    std::stringstream s_drive, s_steer;
@@ -529,6 +559,17 @@ void CAN_Interface::update_loop(float velocity, float steering)
       this->prev_velocity = this->current_velocity;
    }
 }
+float CAN_Interface::getFeedback()
+{
+   float speedFeedback;
+   this->frame_recv(tty_fd, frame, sizeof(frame));
+
+   asciiToString(frame, sizeof(frame), received_data);
+   parseMessage(received_data, &speedFeedback);
+   
+   return speedFeedback;
+}
+
 CAN_Interface::~CAN_Interface()
 {
 }
