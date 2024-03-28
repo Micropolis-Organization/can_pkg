@@ -16,6 +16,7 @@ CAN_Interface::CAN_Interface(char *port) : USB_PORT(port)
    signal(SIGINT, sigterm);
 
    tty_fd = adapter_init(USB_PORT, baudrate);
+   printf("ttyfd: %d", tty_fd);
    if (tty_fd == -1)
    {
       printf("Wrong in init adpater");
@@ -24,6 +25,7 @@ CAN_Interface::CAN_Interface(char *port) : USB_PORT(port)
 
    command_settings(tty_fd, speed, CANUSB_MODE_NORMAL, CANUSB_FRAME_STANDARD);
    inject_data = "S:%.2f";
+   printf(" CAN Interface init");
 }
 
 CAN_Interface::CANUSB_SPEED CAN_Interface::canusb_int_to_speed(int speed)
@@ -536,7 +538,8 @@ void CAN_Interface::sendCmdVel(float velocity, float steering)
       s_steer << "S:" << std::fixed << std::setprecision(2) << this->current_steering;
       const char *data_steering = s_steer.str().c_str();
       // ROS_INFO("%s", s_steer.str().c_str());
-
+      // std::cout<<"inject_data"<<std::endl;
+      // printf("len data_steering: %d", strlen(data_steering));
       if (inject_data_frame(tty_fd, inject_id, (unsigned char *)data_steering, strlen(inject_data)) == -1)
       {
          exit(1);
@@ -562,11 +565,26 @@ void CAN_Interface::sendCmdVel(float velocity, float steering)
 float CAN_Interface::getFeedback()
 {
    float speedFeedback;
-   this->frame_recv(tty_fd, frame, sizeof(frame));
+   int data_rec = this->frame_recv(tty_fd, frame, sizeof(frame));
 
-   asciiToString(frame, sizeof(frame), received_data);
-   parseMessage(received_data, &speedFeedback);
-   
+   asciiToString(&frame[4], 6, received_data);
+
+   if(parseMessage(received_data, &speedFeedback)){
+      std::cout<< "speedFeedback: "<< speedFeedback<<std::endl;
+      // std::cout<< "received_data: "<< received_data<<std::endl;
+      // std::cout<< "data_rec: "<< data_rec<<std::endl;
+      // for (int i = 0; i < 20; i++)
+      // {
+      //    std::cout<< "frame: "<< frame[i]<<std::endl;
+      // }
+      // std::cout<< ""<<std::endl;
+      
+      // std::cout<< "data_rec: "<< data_rec<<std::endl;
+      // std::cout<<("received_data: %s\n", received_data)<<std::endl;
+
+   }
+   // std::cout<<("-------------------")<<std::endl;
+
    return speedFeedback;
 }
 

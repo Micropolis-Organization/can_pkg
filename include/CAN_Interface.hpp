@@ -17,6 +17,8 @@
 #include <sys/time.h>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
+
 class CAN_Interface
 {
 private:
