@@ -7,6 +7,8 @@
         <param name="port" value="$(arg port)"/>
     </node>
 
+    <node name="convert_CmdVel" pkg="upolis_control" type="ros_node.py" output="screen"/>
+    
     <node pkg="can_pkg" type="ros_slider_publisher.py" name="ros_slider" 
       if="$(eval arg('gui') == 'yes')"/>
 
